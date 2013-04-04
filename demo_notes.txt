@@ -1,0 +1,176 @@
+==================================================
+demo.html
+==================================================
+<div>
+	<label>Name:</label>
+	<input type="text" ng-model="yourName" placeholder="Enter a name here">
+	<hr>
+	<h1>Hello {{yourName}}!</h1>
+</div>
+==================================================
+
+==================================================
+<div ng-controller="TestCtrl">
+	<h2>{{name}}</h2>
+	<button class="btn" ng-click="changeName()">Change</button>
+</div>
+
+ function TestCtrl($scope) {
+            $scope.name = 'Jon';
+
+            $scope.changeName = function () {
+                $scope.name = 'Gyllis';
+            };
+
+        }
+==================================================
+==================================================
+
+<ul>
+	<li ng-repeat="person in people">
+		{{person.name}}
+	</li>
+</ul>
+
+$scope.people = [{name:'Jon'}, {name:'Kalle'}];
+==================================================
+
+==================================================
+Add $http
+
+<button class="btn" ng-click="loadPeople()">Load people</button>
+
+$scope.loadPeople = function() {
+	$http.get("/data/people")
+		.success(function(data) {
+			$scope.people = data;
+		})
+		.error(function(data, status, headers, config) {
+			console.log(data);
+		});
+};
+==================================================
+
+
+==================================================
+SPA
+==================================================
+
+DEFAULT
+<ul>
+    <li ng-repeat="person in people">
+            <a href="#/person/{{person.id}}">{{person.name}}</a>
+    </li>
+</ul>
+
+SHOW
+<label>id</label>{{person.id}}
+<label>name</label>{{person.name}}
+<a href="#/person/edit/{{person.id}}">Edit</a>
+
+EDIT
+<label>id</label>{{person.id}}
+<label>name</label><input type="text" ng-model="person.name"/>
+
+CREATE
+<label>name</label><input type="text" ng-model="person.name"/>
+
+BETTER DEFAULT
+<div>
+    <input type="text" ng-model="search" class="search-query" placeholder="search" style="width: 85%; color: black;" />
+</div>
+<div >
+    <table class="table table-striped table-bordered table-condensed">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Name</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr ng-repeat="person in people | filter:search | orderBy:'name'">
+                <td>
+                    {{person.id}}
+                </td>
+                <td>
+                    {{person.name|truncate:10}}
+                </td> 
+                <td>
+                    <a href="#/person/{{person.id}}" class="btn">Show</a>
+                </td>
+                <td>
+                    <a href="#/person/edit/{{person.id}}" class="btn">Edit</a>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="3">
+                    <a href="#/person/new/">Add person</a>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+
+function HomeCtrl($scope, $routeParams, $http) {
+    var loadPeople = function () {
+        $http.get("/data/people")
+            .success(function (data) {
+                $scope.people = data;
+            })
+            .error(function (data, status, headers, config) {
+                console.log(data);
+            });
+    };
+
+    loadPeople();
+}
+  
+function PersonEditCtrl($scope, $routeParams, $http) {
+    var loadPerson = function (id) {
+        $http.get("/data/person/" + id)
+            .success(function (data) {
+                $scope.person = data;
+            })
+            .error(function (data, status, headers, config) {
+                console.log(data);
+            });
+    };
+
+    loadPerson($routeParams.id);
+}
+
+function PersonNewCtrl($scope, $routeParams, $http) {
+    $scope.person = {};
+}
+
+function PersonCtrl($scope, $routeParams, $http) {
+    var loadPerson = function (id) {
+        $http.get("/data/person/" + id)
+            .success(function (data) {
+                $scope.person = data;
+            })
+            .error(function (data, status, headers, config) {
+                console.log(data);
+            });
+    };
+
+    loadPerson($routeParams.id);
+}
+
+
+================================0
+SERVICE
+
+!!! Add dependency to app.js
+
+angular.module('demoApp.services', [])
+  .factory('People', ['$http', function ($http) {
+      return {
+          get: function (callback) {
+              $http.get('/data/people').success(function (data) {
+                  callback(data);
+              });
+          }
+      };
+  }]);
